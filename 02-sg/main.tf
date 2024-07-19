@@ -59,7 +59,7 @@ module "vpn" {
     vpc_id = data.aws_ssm_parameter.ssm_vpc_info.value
     common_tags = var.common_tags
     sg_name = "vpn"
-    ingress_rules = var.vpn_sg_rules
+    inbound_rules = var.vpn_sg_rules
 }
 #inbound security group rules allowing traffic to cluster from bastion since, EKS cluster can be accessed by bastion host
 resource "aws_security_group_rule" "cluster_bastion" {

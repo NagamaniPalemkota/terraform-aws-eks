@@ -12,9 +12,6 @@ variable "common_tags" {
         terraform = true
     }
 }
-variable "ingress_rules" {
-    default = ""
-}
 variable "vpn_sg_rules" {
   default = [
     {

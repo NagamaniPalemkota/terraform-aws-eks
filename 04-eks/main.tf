@@ -14,8 +14,8 @@ module "eks" {
   cluster_version = "1.29"
 
   vpc_id                   = local.vpc_id
-  subnet_ids               = split(",".local.private_subnet_ids)
-  control_plane_subnet_ids = split(",".local.private_subnet_ids)
+  subnet_ids               = split(",",local.private_subnet_ids)
+  control_plane_subnet_ids = split(",",local.private_subnet_ids)
 
   create_cluster_security_group = false
   cluster_security_group_id = local.cluster_sg_id

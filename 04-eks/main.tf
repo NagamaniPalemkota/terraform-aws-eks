@@ -1,9 +1,30 @@
+resource "aws_key_pair" "eks" {
+  key_name   = "eks"
+  # you can paste the public key directly like this
+  #public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL6ONJth+DzeXbU3oGATxjVmoRjPepdl7sBuPzzQT2Nc sivak@BOOK-I6CR3LQ85Q"
+  public_key = file("~/.ssh/eks.pub")
+  # ~ means windows home directory
+}
+
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 20.0"
 
   cluster_name    = "expense-dev"
   cluster_version = "1.29"
+
+  vpc_id                   = local.vpc_id
+  subnet_ids               = split(",".local.private_subnet_ids)
+  control_plane_subnet_ids = split(",".local.private_subnet_ids)
+
+  create_cluster_security_group = false
+  cluster_security_group_id = local.cluster_sg_id
+
+  create_node_security_group = false
+  node_security_group_id = local.node_sg_id
+
+  #the user which is used to create cluster will get admin access over it
+  enable_cluster_creator_admin_permissions = true
 
   cluster_endpoint_public_access  = true
 
@@ -14,9 +35,7 @@ module "eks" {
     vpc-cni                = {}
   }
 
-  vpc_id                   = local.vpc_id
-  subnet_ids               = split(",".local.private_subnet_ids)
-  control_plane_subnet_ids = split(",".local.private_subnet_ids)
+
 
   # EKS Managed Node Group(s)
   eks_managed_node_group_defaults = {
@@ -24,41 +43,20 @@ module "eks" {
   }
 
   eks_managed_node_groups = {
-    example = {
-      # Starting on 1.30, AL2023 is the default AMI type for EKS managed node groups
-      ami_type       = "AL2023_x86_64_STANDARD"
-      instance_types = ["m5.xlarge"]
-
+    blue = {
       min_size     = 2
       max_size     = 10
       desired_size = 2
-    }
-  }
-
-  # Cluster access entry
-  # To add the current caller identity as an administrator
-  enable_cluster_creator_admin_permissions = true
-
-  access_entries = {
-    # One access entry with a policy associated
-    example = {
-      kubernetes_groups = []
-      principal_arn     = "arn:aws:iam::123456789012:role/something"
-
-      policy_associations = {
-        example = {
-          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"
-          access_scope = {
-            namespaces = ["default"]
-            type       = "namespace"
-          }
-        }
+      capacity_type = "SPOT"
+      iam_role_additional_policies = {
+        AmazonEBSCSIDriverPolicy          = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+        AmazonElasticFileSystemFullAccess = "arn:aws:iam::aws:policy/AmazonElasticFileSystemFullAccess"
+        # ElasticLoadBalancingFullAccess = "arn:aws:iam::aws:policy/ElasticLoadBalancingFullAccess"
       }
+      key_name = aws_key_pair.eks.key_name
     }
   }
 
-  tags = {
-    Environment = "dev"
-    Terraform   = "true"
-  }
+  tags =  var.common_tags
+  
 }

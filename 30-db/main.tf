@@ -32,6 +32,7 @@ module "db" {
     password = "ExpenseApp1"
 
     skip_final_snapshot = true
+  
 
   parameters = [
     {
@@ -44,7 +45,7 @@ module "db" {
     }
   ]
  
-
+  
   options = [
     {
       option_name = "MARIADB_AUDIT_PLUGIN"

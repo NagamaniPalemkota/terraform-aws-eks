@@ -1,0 +1,82 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+ name: backend-configmap
+ namespace: expense
+data: 
+  DB_HOST: db-dev.muvva.online #rds component service name
+#configmap details to tell backend to connect to rds service
+---
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: backend
+  namespace: expense
+  labels:
+    app: expense
+    tier: app
+    component: backend
+  #these labels belong to deployment set resource
+spec:
+  replicas: 2 #specify no. of pods, as per our requirement
+  selector: #select the pods with these labels
+    matchLabels:
+      app: expense
+      tier: app
+      component: backend
+    #below mentioned code refers to pod definition
+  template:
+    metadata:
+      labels:
+        app: expense
+        tier: app
+        component: backend
+    spec:
+      initContainers:
+      - name: init-myservice
+        image: busybox:1.28
+        command: ['sh', '-c', "until nslookup db-dev.muvva.online; do echo waiting for mysqlservice; sleep 2; done"]
+      containers:
+      - name: backend
+        image: nagamanimuvva/backend:v1.0
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "150m"
+            memory: "256Mi"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          failureThreshold: 2
+          periodSeconds: 5
+          initialDelaySeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          failureThreshold: 2
+          periodSeconds: 5
+          initialDelaySeconds: 20
+        envFrom:
+        - configMapRef:
+            name: backend-configmap
+---
+#creating backend service to connect to backend
+apiVersion: v1
+kind: Service
+metadata: 
+  name: backend
+  namespace: expense
+spec:
+  selector:
+    app: expense
+    tier: app
+    component: backend
+  ports:
+    - protocol: TCP
+      port: 8080   #service port
+      targetPort: 8080  #pod port

@@ -167,6 +167,6 @@ metadata:
   namespace: expense
 spec:
   serviceRef:
-    name: frontend# route traffic to the frontend
+    name: frontend # route traffic to the frontend
     port: 80
   targetGroupARN: arn:aws:elasticloadbalancing:us-east-1:992382737665:targetgroup/expense-dev-frontend/87dac886430318fa

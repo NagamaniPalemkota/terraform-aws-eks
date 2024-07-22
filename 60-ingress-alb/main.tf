@@ -56,7 +56,7 @@ resource "aws_lb_target_group" "frontend" {
   port     = 8080
   protocol = "HTTP"
   target_type = "ip"
-  vpc_id   = data.aws_ssm_parameter.vpc_id.value
+  vpc_id   = data.aws_ssm_parameter.vpc_info.value
   health_check {
     path                = "/"
     port                = 8080

@@ -11,7 +11,7 @@ module "eks" {
   version = "~> 20.0"
 
   cluster_name    = "expense-dev"
-  cluster_version = "1.29"
+  cluster_version = "1.30"
 
   vpc_id                   = local.vpc_id
   subnet_ids               = split(",",local.private_subnet_ids)
@@ -43,7 +43,20 @@ module "eks" {
   }
 
   eks_managed_node_groups = {
-    blue = {
+    # blue = {
+    #   min_size     = 2
+    #   max_size     = 10
+    #   desired_size = 2
+    #   capacity_type = "SPOT"
+    #   iam_role_additional_policies = {
+    #     AmazonEBSCSIDriverPolicy          = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+    #     AmazonElasticFileSystemFullAccess = "arn:aws:iam::aws:policy/AmazonElasticFileSystemFullAccess"
+    #     # ElasticLoadBalancingFullAccess = "arn:aws:iam::aws:policy/ElasticLoadBalancingFullAccess"
+    #   }
+    #   #to connect to nodes in cluster, EKS takes AWSLinux2 as its OS to the nodes
+    #   key_name = aws_key_pair.eks.key_name
+    # }
+     green = {
       min_size     = 2
       max_size     = 10
       desired_size = 2
@@ -51,8 +64,9 @@ module "eks" {
       iam_role_additional_policies = {
         AmazonEBSCSIDriverPolicy          = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
         AmazonElasticFileSystemFullAccess = "arn:aws:iam::aws:policy/AmazonElasticFileSystemFullAccess"
-        # ElasticLoadBalancingFullAccess = "arn:aws:iam::aws:policy/ElasticLoadBalancingFullAccess"
+        ElasticLoadBalancingFullAccess = "arn:aws:iam::aws:policy/ElasticLoadBalancingFullAccess"
       }
+      #to connect to nodes in cluster, EKS takes AWSLinux2 as its OS to the nodes
       key_name = aws_key_pair.eks.key_name
     }
   }

@@ -25,8 +25,8 @@ module "eks" {
 
   #the user which is used to create cluster will get admin access over it
   enable_cluster_creator_admin_permissions = true
-
-  cluster_endpoint_public_access  = true
+#it should be false in PROD
+  cluster_endpoint_public_access  = false
 
   cluster_addons = {
     coredns                = {}

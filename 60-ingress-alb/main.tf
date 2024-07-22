@@ -51,6 +51,40 @@ resource "aws_lb_listener" "https" {
 }
 }
 
+resource "aws_lb_target_group" "frontend" {
+  name     = "${var.project_name}-${var.environment}-frontend"
+  port     = 8080
+  protocol = "HTTP"
+  target_type = "ip"
+  vpc_id   = data.aws_ssm_parameter.vpc_id.value
+  health_check {
+    path                = "/"
+    port                = 8080
+    protocol            = "HTTP"
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+    matcher             = "200"
+  }
+}
+
+resource "aws_lb_listener_rule" "frontend" {
+  listener_arn = aws_lb_listener.https.arn
+  priority     = 100 # less number will be first validated
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.frontend.arn
+  }
+
+  condition {
+    host_header {
+      # expense-dev.muvva.online --> frontend pod
+      values = ["expense-${var.environment}.${var.zone_name}"]
+    }
+  }
+}
+
+
 #creating route53 records usind load balancer DNS
 module "records" {
   source  = "terraform-aws-modules/route53/aws//modules/records"
@@ -60,7 +94,7 @@ module "records" {
 
   records = [
     {
-      name    = "web-${var.environment}"
+      name    = "expense-${var.environment}"
       type    = "A"
       allow_overwrite = true
       alias = {

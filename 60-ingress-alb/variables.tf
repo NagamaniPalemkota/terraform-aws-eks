@@ -10,7 +10,7 @@ variable "common_tags" {
         project = "expense"
         environment = "dev" 
         terraform = true
-        component = "web-alb"
+        component = "ingress-alb"
     }
 }
 variable "zone_name" {
